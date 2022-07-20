@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker compose down --remove-orphans
+docker compose -p crdb-cluster down --remove-orphans
