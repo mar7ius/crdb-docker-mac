@@ -1,4 +1,4 @@
-.PHONY up down
+.PHONY: up down
 
 up:
 	crdb-cluster/scripts/up.sh
