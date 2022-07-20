@@ -72,4 +72,10 @@ else
     docker cp roach-cert:/.cockroach-certs/client.root.crt ./certs/
     docker cp roach-cert:/.cockroach-certs/client.root.key ./certs/
     docker cp roach-cert:/.cockroach-certs/client.root.key.pk8 ./certs/
+
+    echo "Cockroach cluster initialised, certificates generated and copied to ./certs/ \n"
+    echo "Cleaning up...\n"
+    docker compose stop roach-cert
+    docker container prune -f
+    echo "Done."
 fi
