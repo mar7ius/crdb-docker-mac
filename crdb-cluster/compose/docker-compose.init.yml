@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+
+  roach-cert:
+    container_name: roach-cert
+    hostname: roach-cert
+    image: mar7ius/cockroach_macos_arm:crdb-dynamic-cert
+    volumes:
+      - certs:/.cockroach-certs
+    environment:
+      - NODE_ALTERNATIVE_NAMES=*.crdb.io localhost
+
+  roach-init:
+    container_name: roach-init
+    hostname: roach-init
+    image: mar7ius/cockroach_macos_arm:crdb-remote-client
+    environment:
+      - COCKROACH_HOST=roach-0.crdb.io:26257
+      - COCKROACH_INSECURE=false
+      - COCKROACH_INIT=true
+      - COCKROACH_CERTS_DIR=/certs
+      - DATABASE_NAME=test
+      - DATABASE_USER=test
+      - DATABASE_PASSWORD=password
+    volumes:
+      - certs:/certs:ro
+    depends_on:
+      - lb
+      - roach-cert
