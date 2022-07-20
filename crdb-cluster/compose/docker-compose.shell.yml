@@ -1,0 +1,20 @@
+version: '3.8'
+
+volumes:
+  certs:
+
+services:
+
+  roach-shell:
+    container_name: roach-shell
+    hostname: roach-shell
+    image: mar7ius/cockroach_macos_arm:crdb-remote-client
+    environment:
+      - COCKROACH_HOST=roach-0.crdb.io:26257
+      - COCKROACH_INSECURE=false
+      - COCKROACH_INIT=false
+      - COCKROACH_CERTS_DIR=/certs
+      - DATABASE_USER=test
+      - DATABASE_PASSWORD=password
+    volumes:
+      - certs:/certs:ro

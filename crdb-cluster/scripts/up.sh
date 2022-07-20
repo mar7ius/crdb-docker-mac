@@ -19,7 +19,7 @@ if [[ "$(ls -a ./certs)" ]] && [[ $1 == "sql" ]]	; then
     sleep 5
 
     # Open SQL console to backup OR restore, then remove container
-    docker compose -f docker-compose.console.yml run -it --rm --entrypoint='./cockroach sql' roach-bckp
+    docker compose -f docker-compose.shell.yml run -it --rm --entrypoint='./cockroach sql' roach-shell
   else
     echo "lauching cockroach and open a console..."
     docker compose -f docker-compose.yml up --no-start
@@ -33,7 +33,7 @@ if [[ "$(ls -a ./certs)" ]] && [[ $1 == "sql" ]]	; then
 
     sleep 5
 
-    docker compose -f docker-compose.console.yml run -it --rm --entrypoint='./cockroach sql' roach-bckp
+    docker compose -f docker-compose.shell.yml run -it --rm --entrypoint='./cockroach sql' roach-shell
   fi
 
 elif [[ "$(ls -a ./certs)" ]]; then
