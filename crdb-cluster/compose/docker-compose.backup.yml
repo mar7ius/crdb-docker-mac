@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  roach-0:
+    volumes:
+          - certs:/certs:ro
+          - data0:/cockroach/cockroach-data:rw
+          - ./backup:/cockroach/backup:rw
