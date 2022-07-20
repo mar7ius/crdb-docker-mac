@@ -1,0 +1,59 @@
+version: '3.8'
+
+volumes:
+  certs:
+  data0:
+  data1:
+  data2:
+
+services:
+
+  roach-0:
+    container_name: roach-0
+    hostname: roach-0.crdb.io
+    image: mar7ius/cockroach_macos_arm:v22.1.3_arm64
+    command: start --cluster-name=argos-cluster --certs-dir=/certs --listen-addr=roach-0.crdb.io:26257 --advertise-addr=roach-0.crdb.io:26257 --join=roach-0.crdb.io --cache=.25
+    volumes:
+      - certs:/certs:ro
+      - data0:/cockroach/cockroach-data:rw
+    restart: always
+
+  roach-1:
+    container_name: roach-1
+    hostname: roach-1.crdb.io
+    image: mar7ius/cockroach_macos_arm:v22.1.3_arm64
+    command: start --cluster-name=argos-cluster --certs-dir=/certs --listen-addr=roach-1.crdb.io:26257 --advertise-addr=roach-1.crdb.io:26257 --join=roach-0.crdb.io --cache=.25
+    volumes:
+      - certs:/certs:ro
+      - data1:/cockroach/cockroach-data:rw
+    depends_on:
+      - roach-0
+    restart: always
+
+  roach-2:
+    container_name: roach-2
+    hostname: roach-2.crdb.io
+    image: mar7ius/cockroach_macos_arm:v22.1.3_arm64
+    command: start --cluster-name=argos-cluster --certs-dir=/certs --listen-addr=roach-2.crdb.io:26257 --advertise-addr=roach-2.crdb.io:26257 --join=roach-0.crdb.io --cache=.25
+    volumes:
+      - certs:/certs:ro
+      - data2:/cockroach/cockroach-data:rw
+    depends_on:
+      - roach-0
+    restart: always
+
+  lb:
+    container_name: lb
+    hostname: lb.crdb.io
+    image: mar7ius/cockroach_macos_arm:crdb-dynamic-haproxy_v2.6
+    ports:
+      - "26257:26257"
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      - NODES=roach-0.crdb.io roach-1.crdb.io roach-2.crdb.io
+    depends_on:
+      - roach-0
+      - roach-1
+      - roach-2
+    restart: always
