@@ -12,7 +12,16 @@ function stop_crdb_nodes() {
   docker compose -p crdb-cluster down --remove-orphans
 }
 
+function stop_crdb_nodes_if_running() {
+  regex="(lb)|(roach*)"
+  if [[ $(docker ps -f status=running --format "{{.Names}}") =~ $regex ]] ; then
+    echo "cockroach is already running, stoping before starting in console/backup mode..."
+    stop_crdb_nodes
+  fi
+}
+
 if [[ "$(ls ./certs)" ]] && [[ $1 == "sql" ]]	; then
+  stop_crdb_nodes_if_running
   if [[ $2 == "backup" ]] ; then
     echo "lauching cockroach and open a console in backup/restore mode..."
     # in backup mode, mount the backup folder to the docker roach-0 container.
