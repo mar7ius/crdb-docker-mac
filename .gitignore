@@ -1,6 +1,4 @@
 .vscode
 .DS_Store
-!crdb-cluster/certs/.keep
-crdb-cluster/certs/*
 !crdb-cluster/backup/.keep
 crdb-cluster/backup/*
