@@ -46,7 +46,7 @@ else
     docker compose -f docker-compose.yml -f docker-compose.init.yml up --no-start
     # Generate certificates :
     docker compose start roach-cert
-    sleep 5 # Wait for certificates to be generated
+    sleep 3 # Wait for certificates to be generated
 
     # Start cockroach :
     start_crdb_nodes
