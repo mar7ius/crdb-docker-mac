@@ -20,7 +20,11 @@ function stop_crdb_nodes_if_running() {
   fi
 }
 
-if [[ "$(ls ./certs)" ]] && [[ $1 == "sql" ]]	; then
+function is_initialised() {
+  [[ $(docker volume ls -f name=certs --format "{{.Name}}") =~ crdb-cluster_certs ]]
+}
+
+if is_initialised && [[ $1 == "sql" ]]	; then
   stop_crdb_nodes_if_running
   if [[ $2 == "backup" ]] ; then
     echo "lauching cockroach and open a console in backup/restore mode..."
@@ -37,7 +41,7 @@ if [[ "$(ls ./certs)" ]] && [[ $1 == "sql" ]]	; then
     docker compose -f docker-compose.shell.yml run -it --rm --entrypoint='./cockroach sql' roach-shell
   fi
 
-elif [[ "$(ls ./certs)" ]]; then
+elif is_initialised; then
     echo "Certificates found, lauching cockroach..."
     docker compose -f docker-compose.yml up --no-start
     start_crdb_nodes
