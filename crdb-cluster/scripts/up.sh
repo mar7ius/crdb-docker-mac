@@ -1,5 +1,17 @@
 #!/bin/bash
 
+GRN='\033[1;32m'
+YEL='\033[1;33m'
+END='\033[0m'
+BLOCK='\033[1;37m'
+
+# highlight the next step
+success() { log "${GRN}$1${END}"; }
+info() { log "${YEL}$1${END}"; }
+
+# output a "log" line with bold leading >>>
+log() { >&2 printf "${BLOCK}>>>${END} $1\n"; }
+
 # Change working directory :
 cd crdb-cluster/ > /dev/null
 
@@ -15,7 +27,7 @@ function stop_crdb_nodes() {
 function stop_crdb_nodes_if_running() {
   regex="(lb)|(roach*)"
   if [[ $(docker ps -f status=running --format "{{.Names}}") =~ $regex ]] ; then
-    echo "Cockroach cluster is already running, stoping before starting in console/backup mode..."
+    info "Cockroach cluster is already running, stoping before starting in console/backup mode..."
     stop_crdb_nodes
   fi
 }
@@ -28,7 +40,7 @@ function is_initialized() {
 if is_initialized && [[ $1 == "sql" ]]	; then
   stop_crdb_nodes_if_running
   if [[ $2 == "backup" ]] ; then
-    echo "Starting CRDB cluster and open a console in backup/restore mode..."
+    info "Starting CRDB cluster and opening a console in backup/restore mode..."
     # in backup mode, mount the backup folder to the docker roach-0 container.
     # if we want to restore a backup, we can open a shell in the docker roach-0 container to copy the backup from backup/ to cockroach-data/extern/backup
     docker compose -f docker-compose.yml -f docker-compose.backup.yml up --no-start
@@ -36,18 +48,18 @@ if is_initialized && [[ $1 == "sql" ]]	; then
     # Open SQL console to backup OR restore, then remove container
     docker compose -f docker-compose.shell.yml run -it --rm --entrypoint='./cockroach sql' roach-shell
   else
-    echo "Starting CRDB cluster and open a console..."
+    info "Starting CRDB cluster and opening a console..."
     docker compose -f docker-compose.yml up --no-start
     start_crdb_nodes
     docker compose -f docker-compose.shell.yml run -it --rm --entrypoint='./cockroach sql' roach-shell
   fi
 
 elif is_initialized; then
-    echo "Cluster already initialized, starting CRDB cluster..."
+    success "Cluster already initialized, starting CRDB cluster..."
     docker compose -f docker-compose.yml up --no-start
     start_crdb_nodes
 else
-    echo "Certificate volume not found, initializing cockroach..."
+    info "Certificate volume not found, initializing cockroach..."
     docker compose -f docker-compose.yml -f docker-compose.init.yml up --no-start
     # Generate certificates :
     docker compose start roach-cert
@@ -59,11 +71,10 @@ else
     # Initializing cockroach cluster :
     docker compose start roach-init
 
-    # echo "Cockroach cluster initialized, certificates generated and copied to ./certs/ \n"
-    echo "✅ Cockroach cluster initialized"
-    echo "🗑 Cleaning up..."
+    success "✅ Cockroach cluster initialized"
+    info "🗑  Cleaning up..."
     docker compose stop roach-cert
     sleep 5 # Wait for roch-init to finish before cleaning up
     docker container prune -f
-    echo "Done 🎉"
+    success "Done 🎉"
 fi
