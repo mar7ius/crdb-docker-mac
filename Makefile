@@ -15,6 +15,9 @@ up:
 down:
 	crdb-cluster/scripts/down.sh
 
+prune:
+	crdb-cluster/scripts/prune.sh
+
 # Guard clause to turn UP_ARGS into do-nothing targets:
 %:
 	@:
