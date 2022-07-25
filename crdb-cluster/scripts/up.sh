@@ -2,12 +2,14 @@
 
 GRN='\033[1;32m'
 YEL='\033[1;33m'
+BLU='\033[1;34m'
 END='\033[0m'
 BLOCK='\033[1;37m'
 
 # highlight the next step
 success() { log "${GRN}$1${END}"; }
-info() { log "${YEL}$1${END}"; }
+info() { log "${BLU}$@${END}"; }
+warn() { log "${YEL}$1${END}"; }
 
 # output a "log" line with bold leading >>>
 log() { >&2 printf "${BLOCK}>>>${END} $1\n"; }
@@ -32,15 +34,60 @@ function stop_crdb_nodes_if_running() {
   fi
 }
 
+function copy_backup_from_host_to_node() {
+  read -p $'\033[1;37m>>>\033[0m \033[1;33m'"⚠️  Do you want to copy the content from ./backup to roach-0 ? [y/n] > "$'\033[0m' -r -n 1 choice
+  case "$choice" in
+    y|Y )
+      echo $'\n'
+      echo "Copying backup from host to node..."
+      tar -xvf ./backup/extern.zip -C ./backup/
+      docker cp ./backup roach-0:/cockroach/cockroach-data/extern
+      echo $'\n'
+      success "Backup copied to node"
+      cat <<EOF
+Cheatsheet:
+  Show databases:
+    SHOW DATABASES;
+  Show backups:
+    SHOW BACKUPS IN 'nodelocal://0/backup';
+    SHOW BACKUP FROM latest IN 'nodelocal://0/backup';
+  Restore backup:
+    - latest backup:
+    RESTORE DATABASE backup_database_name FROM LATEST in 'nodelocal://0/backup';
+    - specific backup:
+    RESTORE DATABASE backup_database_name FROM '/2021/12/14-190909.83' in 'nodelocal://0/backup';
+  Make backup:
+    BACKUP DATABASE database_name INTO 'nodelocal://0/backup' AS OF SYSTEM TIME '-10s';
+EOF
+      echo $'\n'
+      return 0
+      ;;
+    n|N )
+      echo $'\n'
+      echo "Skipping..."
+      return 0
+      ;;
+    * )
+      echo $'\n'
+      echo "Invalid Choice. Type y or n."
+      copy_backup_from_host_to_node # restart process on invalid choice
+      ;;
+  esac
+}
+
+
 # Checking if the CDRB certs volume exists. If not, the cluster in not initialized:
 function is_initialized() {
   [[ $(docker volume ls -f name=certs --format "{{.Name}}") =~ crdb-cluster_certs ]]
 }
 
+eval clear
+
 if is_initialized && [[ $1 == "sql" ]]	; then
   stop_crdb_nodes_if_running
   if [[ $2 == "backup" ]] ; then
     info "Starting CRDB cluster and opening a console in backup/restore mode..."
+    copy_backup_from_host_to_node
     # in backup mode, mount the backup folder to the docker roach-0 container.
     # if we want to restore a backup, we can open a shell in the docker roach-0 container to copy the backup from backup/ to cockroach-data/extern/backup
     docker compose -f docker-compose.yml -f docker-compose.backup.yml up --no-start
