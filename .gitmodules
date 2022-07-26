@@ -4,3 +4,6 @@
 [submodule "crdb-remote-client"]
 	path = crdb-remote-client
 	url = https://github.com/mar7ius/crdb-remote-client
+[submodule "crdb-certs"]
+	path = crdb-certs
+	url = https://github.com/mar7ius/crdb-certs
