@@ -1,0 +1,3 @@
+[submodule "crdb-haproxy"]
+	path = crdb-haproxy
+	url = https://github.com/mar7ius/crdb-haproxy
