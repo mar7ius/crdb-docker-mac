@@ -109,18 +109,18 @@ else
     info "Certificate volume not found, initializing cockroach..."
     docker compose -f docker-compose.yml -f docker-compose.init.yml up --no-start
     # Generate certificates :
-    docker compose start roach-cert
+    docker compose -p crdb-cluster start roach-cert
     sleep 3 # Wait for certificates to be generated
 
     # Start cockroach :
     start_crdb_nodes
 
     # Initializing cockroach cluster :
-    docker compose start roach-init
+    docker compose -p crdb-cluster start roach-init
 
     success "✅ Cockroach cluster initialized"
     info "🗑  Cleaning up..."
-    docker compose stop roach-cert
+    docker compose -p crdb-cluster stop roach-cert
     sleep 5 # Wait for roch-init to finish before cleaning up
     docker container prune -f
     success "Done 🎉"
